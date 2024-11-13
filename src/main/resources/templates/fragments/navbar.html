@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://thymeleaf.org">
+ 
+<head>
+  <meta charset="UTF-8">
+</head>
+ 
+<body>
+  <nav th:fragment="navbar" class="navbar navbar-expand-lg bg-light">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-primary">Apap Medika</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a th:class="'nav-link ' + ${active}" th:href="@{/}">Home</a>
+              </li>
+              <li class="nav-item">
+                <a th:class="'nav-link ' + ${activeAppoinments}" th:href="@{/appointment/all}">Appointments</a>
+              </li>
+              <li class="nav-item">
+                <a th:class="'nav-link ' + ${activeDoctors}" th:href="@{/doctor/all}">Doctors</a>
+              </li>
+            </ul>
+        </div>
+    </div>
+  </nav>
+</body>
+
+</html>
