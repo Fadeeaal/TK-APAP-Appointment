@@ -1,0 +1,21 @@
+services:
+  appointment:
+    container_name: appointment-2206082985
+    build:
+      context: .
+    ports:
+      - '10298:8080'
+    restart: 'no'
+    labels:
+      uid: "2206082985"
+    networks:
+      - backend-network
+    environment:
+      - DATABASE_URL_DEV=jdbc:postgresql://localhost:5432/appointment
+      - DEV_USERNAME=postgres
+      - DEV_PASSWORD=secret99
+      - JWT_SECRET_KEY=wSQbwfMLEimcIDjJzRetzWhDpbpuXqkxcHaqVEWD
+networks:
+  backend-network:
+    name: apap-298_backend-network
+    external: true

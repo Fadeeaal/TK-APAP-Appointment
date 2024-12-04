@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import apap.tk.appointment.model.Appointment;
-import apap.tk.appointment.restdto.response.AppointmentResponseDTO;
+import apap.tk.appointment.restdto.request.AddAppointmentRequestRestDTO;
+import apap.tk.appointment.restdto.response.AppointmentResponseRestDTO;
 import apap.tk.appointment.restdto.response.BaseResponseDTO;
 import apap.tk.appointment.restservice.AppointmentRestService;
 
@@ -27,8 +28,8 @@ public class AppointmentRestController {
 
     @GetMapping("/all")
     public ResponseEntity<?> listAppointment() {
-        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseDTO>>();
-        List<AppointmentResponseDTO> listAppointment = appointmentRestService.getAllAppointment();
+        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseRestDTO>>();
+        List<AppointmentResponseRestDTO> listAppointment = appointmentRestService.getAllAppointment();
 
         baseResponseDTO.setStatus(HttpStatus.OK.value());
         baseResponseDTO.setData(listAppointment);
@@ -39,8 +40,8 @@ public class AppointmentRestController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getAppointmentById(@PathVariable String id) {
-        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseDTO>();
-        AppointmentResponseDTO appointment = appointmentRestService.getAppointmentById(id);
+        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseRestDTO>();
+        AppointmentResponseRestDTO appointment = appointmentRestService.getAppointmentById(id);
 
         if (appointment == null) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
@@ -57,9 +58,9 @@ public class AppointmentRestController {
     }
 
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<?> getAppointmentsByDoctorId(@PathVariable String doctorId) {
-        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseDTO>>();
-        List<AppointmentResponseDTO> appointments = appointmentRestService.getAllAppointmentByDoctor(doctorId);
+    public ResponseEntity<?> getAppointmentsByDoctorId(@PathVariable UUID doctorId) {
+        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseRestDTO>>();
+        List<AppointmentResponseRestDTO> appointments = appointmentRestService.getAllAppointmentByDoctor(doctorId);
 
         if (appointments == null || appointments.isEmpty()) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
@@ -80,8 +81,8 @@ public class AppointmentRestController {
             @RequestParam("from") @DateTimeFormat(pattern = "yyyy-MM-dd") Date from,
             @RequestParam("to") @DateTimeFormat(pattern = "yyyy-MM-dd") Date to) {
 
-        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseDTO>>();
-        List<AppointmentResponseDTO> appointments = appointmentRestService.getAllAppointmentsByDate(from, to);
+        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseRestDTO>>();
+        List<AppointmentResponseRestDTO> appointments = appointmentRestService.getAllAppointmentsByDate(from, to);
 
         if (appointments.isEmpty()) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
@@ -99,8 +100,8 @@ public class AppointmentRestController {
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<?> getAppointmentsByPatientId(@PathVariable UUID patientId) {
-        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseDTO>>();
-        List<AppointmentResponseDTO> appointments = appointmentRestService.getAllAppointmentsByPatient(patientId);
+        var baseResponseDTO = new BaseResponseDTO<List<AppointmentResponseRestDTO>>();
+        List<AppointmentResponseRestDTO> appointments = appointmentRestService.getAllAppointmentsByPatient(patientId);
         if (appointments == null || appointments.isEmpty()) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
             baseResponseDTO.setMessage(String.format("Appointments untuk pasien dengan id %s tidak ditemukan", patientId));
@@ -110,17 +111,17 @@ public class AppointmentRestController {
 
         baseResponseDTO.setStatus(HttpStatus.OK.value());
         baseResponseDTO.setData(appointments);
-        baseResponseDTO.setMessage(String.format("Daftar appointment dengan id %s berhasil ditemukan dalam rentang tanggal", patientId));
+        baseResponseDTO.setMessage(String.format("Daftar appointment dengan id %s berhasil ditemukan", patientId));
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createAppointment(@RequestBody Appointment appointment) {
-        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseDTO>();
+    public ResponseEntity<?> createAppointment(@RequestBody AddAppointmentRequestRestDTO appointment) throws Exception {
+        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseRestDTO>();
 
         // Simpan appointment menggunakan service
-        AppointmentResponseDTO savedAppointment = appointmentRestService.createAppointment(appointment);
+        AppointmentResponseRestDTO savedAppointment = appointmentRestService.createAppointment(appointment);
 
         baseResponseDTO.setStatus(HttpStatus.CREATED.value());
         baseResponseDTO.setData(savedAppointment);
@@ -133,10 +134,10 @@ public class AppointmentRestController {
     public ResponseEntity<?> updateAppointmentStatus(@PathVariable String id, @RequestBody Map<String, Integer> requestBody) {
 
         int newStatus = requestBody.get("status");  // Ambil status baru dari request body
-        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseDTO>();
+        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseRestDTO>();
 
         // Perbarui status appointment menggunakan service
-        AppointmentResponseDTO updatedAppointment = appointmentRestService.updateAppointmentStatus(id, newStatus);
+        AppointmentResponseRestDTO updatedAppointment = appointmentRestService.updateAppointmentStatus(id, newStatus);
 
         if (updatedAppointment == null) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
@@ -160,10 +161,10 @@ public class AppointmentRestController {
         String diagnosis = (String) requestBody.get("diagnosis");
         List<String> treatments = (List<String>) requestBody.get("treatments");
 
-        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseDTO>();
+        var baseResponseDTO = new BaseResponseDTO<AppointmentResponseRestDTO>();
 
         // Perbarui diagnosis dan treatments menggunakan service
-        AppointmentResponseDTO updatedAppointment = appointmentRestService.updateAppointmentDiagnosisAndTreatment(id, diagnosis, treatments);
+        AppointmentResponseRestDTO updatedAppointment = appointmentRestService.updateAppointmentDiagnosisAndTreatment(id, diagnosis, treatments);
 
         if (updatedAppointment == null) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
@@ -182,17 +183,13 @@ public class AppointmentRestController {
     @DeleteMapping("/{id}/delete")
     public ResponseEntity<?> deleteAppointment(@PathVariable String id) {
         var baseResponseDTO = new BaseResponseDTO<>();
-
-        // Panggil service untuk melakukan soft delete
         boolean isDeleted = appointmentRestService.deleteAppointmentById(id);
-
         if (!isDeleted) {
             baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
             baseResponseDTO.setMessage("Appointment dengan ID " + id + " tidak ditemukan");
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
         }
-
         baseResponseDTO.setStatus(HttpStatus.OK.value());
         baseResponseDTO.setMessage("Appointment dengan ID " + id + " berhasil dihapus (soft delete)");
         baseResponseDTO.setTimestamp(new Date());
