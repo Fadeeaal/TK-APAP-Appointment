@@ -1,0 +1,20 @@
+services:
+  appointment:
+    container_name: appointment-${DEPLOY_UID}
+    image: ${IMAGE_APPOINTMENT}:latest
+    ports:
+      - '${PORT_APPOINTMENT}:8081'
+    restart: 'no'
+    labels:
+      uid: "${DEPLOY_UID}"
+    networks:
+      - backend-network
+    environment:
+      - DATABASE_URL_DEV=jdbc:postgresql://db:5432/${DATABASE_DEV}
+      - DEV_USERNAME=${DATABASE_USERNAME_DEV}
+      - DEV_PASSWORD=${DATABASE_PASSWORD_DEV}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+networks:
+  backend-network:
+    name: apap-298_backend-network
+    external: true

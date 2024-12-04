@@ -7,6 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -24,14 +25,12 @@ public class Appointment {
     private String id;
 
     @NotNull
-    @ManyToOne
     @JoinColumn(name = "doctor_id", nullable = false)
-    private Doctor doctor;
+    private UUID doctor;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.EAGER)  // EAGER loading ensures patient is fetched with the appointment
     @JoinColumn(name = "patient_id", nullable = false)  // Ensure there's a correct join on patient_id
-    private Patient patient;
+    private UUID patient;
 
 
     @Column(name = "diagnosis")
@@ -67,27 +66,18 @@ public class Appointment {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @NotNull
+    @Column(name = "created_by", nullable = false)
+    private String createdBy;
+
+    @NotNull
+    @Column(name = "updated_by", nullable = false)
+    private String updatedBy;
+
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted = false;
 
     public void setIsDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
-    }
-
-    public Long calculateTotalFee() {
-        // Biaya dasar adalah biaya dokter
-        Long totalFee = doctor.getFee();
-
-        // Tambahkan biaya dari setiap treatment (jika ada)
-        if (treatments != null) {
-            for (Treatment treatment : treatments) {
-                totalFee += treatment.getPrice();
-            }
-        }
-        return totalFee; // Total biaya = biaya dokter + biaya treatment
-    }
-
-    public void setTotalFee() {
-        this.totalFee = calculateTotalFee();
     }
 }
