@@ -60,7 +60,7 @@ deployment:
     - echo "Deploy to server..."
     - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" "echo ${REGISTRY_PASSWORD} | docker login --username ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_SERVER}"
     - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" "mkdir -p ~/apap-tk-45/"
-    - rsync -rahv $CI_PROJECT_DIR/docker-compose.yml "${DEPLOY_USERNAME}@${DEPLOY_SERVER}:~/apap-tk-45/"
+    - rsync -rahv $CI_PROJECT_DIR/docker-compose-deploy.yml "${DEPLOY_USERNAME}@${DEPLOY_SERVER}:~/apap-tk-45/"
     - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" 
       "
         export IMAGE=${IMAGE} &&
