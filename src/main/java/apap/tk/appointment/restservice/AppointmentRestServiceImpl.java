@@ -49,8 +49,8 @@ public class AppointmentRestServiceImpl implements AppointmentRestService {
     public AppointmentRestServiceImpl(AppointmentDb appointmentDb, TreatmentDb treatmentDb, WebClient.Builder webClientBuilder) {
         this.appointmentDb = appointmentDb;
         this.treatmentDb = treatmentDb;
-        this.userWebClient = webClientBuilder.baseUrl("http://localhost:8086/api/profile").build(); // Base URL untuk Profile
-        this.billWebClient = webClientBuilder.baseUrl("http://localhost:8082/api/bill").build();
+        this.userWebClient = webClientBuilder.baseUrl("http://profile:8086/api/profile").build(); // Base URL untuk Profile
+        this.billWebClient = webClientBuilder.baseUrl("http://bill:8082/api/bill").build();
     }
 
     private static final Map<Integer, String> SPECIALIZATION_CODES = new HashMap<>();
@@ -226,6 +226,8 @@ public class AppointmentRestServiceImpl implements AppointmentRestService {
         newAppointment.setUpdatedBy(username);
         newAppointment.setUpdatedAt(LocalDateTime.now());
 
+        var svAppointment = appointmentDb.save(newAppointment);
+
         var billRequest = new BillRequestRestDTO();
         billRequest.setAppointmentId(appointmentId);
         billRequest.setPatientId(newAppointment.getPatient());
@@ -262,7 +264,7 @@ public class AppointmentRestServiceImpl implements AppointmentRestService {
             );
         }
 
-        return appointmentToAppointmentResponseDTO(appointmentDb.save(newAppointment));
+        return appointmentToAppointmentResponseDTO(svAppointment);
     }
 
     @Override
