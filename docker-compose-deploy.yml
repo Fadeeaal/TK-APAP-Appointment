@@ -1,20 +1,25 @@
 services:
   appointment:
-    container_name: appointment-${DEPLOY_UID}
-    image: ${IMAGE_APPOINTMENT}:latest
+    container_name: appointment-tk-45
+    image: ${IMAGE}:latest
     ports:
-      - '${PORT_APPOINTMENT}:8081'
-    restart: 'no'
+      - '${PORT}:8081'
+    restart: 'always'
     labels:
-      uid: "${DEPLOY_UID}"
-    networks:
-      - backend-network
+      tk: "45"
+    # Sesuaikan environment dengan kebutuhan dari masing-masing service
+    # Jika environment yang bersifat secret mohon untuk disimpan di environment gitlab
+    # Jika kamu melakukan fetch api ke service lain silakan gunakan environment yang di define pada docker compose dan dipanggil menggunkan dependency godotenv (gunakan domain yang sudah diberikan)
+    # daftarkan domain service yang melakukan fetch API ke service ini di ConfigCors.java untuk meminimalisir terjadinya CORS
     environment:
       - DATABASE_URL_DEV=jdbc:postgresql://db:5432/${DATABASE_DEV}
       - DEV_USERNAME=${DATABASE_USERNAME_DEV}
       - DEV_PASSWORD=${DATABASE_PASSWORD_DEV}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - PROFILE_URL=${PROFILE_URL}
+    networks:
+      - backend-network
 networks:
   backend-network:
-    name: apap-298_backend-network
+    name: apap-tk-45_backend-network
     external: true

@@ -1,0 +1,85 @@
+default:
+  tags:
+    - apap
+
+.setup-ssh:
+  before_script:
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
+    - eval $(ssh-agent -s)
+    - echo "$DEPLOY_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+
+stages:
+  - build
+  - publish
+  - deploy
+  - clean
+
+variables:
+  IMAGE_OPENJDK_GRADLE: gradle:8.11.1-jdk21-alpine
+  IMAGE_DOCKER_DIND: docker:27.3.1-alpine3.20
+
+build:
+  image: $IMAGE_OPENJDK_GRADLE
+  stage: build
+  only:
+    - main
+  script:
+    - echo "Compile appointment project to .jar"
+    - cd $CI_PROJECT_DIR
+    - sh gradlew clean assemble
+  artifacts:
+    paths:
+      - build/libs/appointment-0.0.1-SNAPSHOT.jar
+
+publish:
+  image: $IMAGE_DOCKER_DIND
+  stage: publish
+  only:
+    - main
+  dependencies:
+    - build
+  script:
+    - echo "Build appointment image..."
+    - cd $CI_PROJECT_DIR
+    - docker build -t $IMAGE:latest -f $CI_PROJECT_DIR/Dockerfile .
+    - echo "Publish appointment image..."
+    - echo $REGISTRY_PASSWORD | docker login --username $REGISTRY_USERNAME --password-stdin $REGISTRY_SERVER
+    - docker push $IMAGE:latest
+
+deployment:
+  stage: deploy
+  dependencies:
+    - publish
+  only:
+    - main
+  extends: .setup-ssh
+  script:
+    - echo "Deploy to server..."
+    - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" "echo ${REGISTRY_PASSWORD} | docker login --username ${REGISTRY_USERNAME} --password-stdin ${REGISTRY_SERVER}"
+    - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" "mkdir -p ~/apap-tk-45/"
+    - rsync -rahv $CI_PROJECT_DIR/docker-compose.yml "${DEPLOY_USERNAME}@${DEPLOY_SERVER}:~/apap-tk-45/"
+    - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" 
+      "
+        export IMAGE=${IMAGE} &&
+        export PORT=${PORT} &&
+        export DATABASE_DEV=${DATABASE_DEV} &&
+        export DATABASE_USERNAME_DEV=${DATABASE_USERNAME_DEV} &&
+        export DATABASE_PASSWORD_DEV=${DATABASE_PASSWORD_DEV} &&
+        export JWT_SECRET_KEY=${JWT_SECRET_KEY} &&
+        cd ~/apap-tk-45/ &&
+        docker compose -f docker-compose-deploy.yml up -d --pull always        
+      "
+
+cleaning:
+  stage: clean
+  dependencies:
+    - deployment
+  only:
+    - main
+  extends: .setup-ssh
+  script:
+    - echo "Cleaning image appointment..."
+    - ssh "${DEPLOY_USERNAME}@${DEPLOY_SERVER}" "docker rmi \$(docker images -f 'dangling=true' -f 'reference=${IMAGE}' -q) 2>/dev/null"
