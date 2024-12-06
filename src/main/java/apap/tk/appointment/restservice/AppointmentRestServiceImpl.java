@@ -354,15 +354,20 @@ public class AppointmentRestServiceImpl implements AppointmentRestService {
             .block();
         
         var fee = doctor.getData().getFee() + appointment.getTreatments().stream()
-            .map(Treatment::getPrice)
-            .reduce(0L, Long::sum);
+            .mapToLong(Treatment::getPrice)
+            .sum();
+        
+        appointment.setTotalFee(fee);
+
         try {
             // Create bill update request
             var billRequest = new BillRequestRestDTO();
             billRequest.setAppointmentId(appointment.getId());
             billRequest.setPatientId(appointment.getPatient());
-            billRequest.setFee(fee);
+            billRequest.setFee(appointment.getTotalFee());
             billRequest.setDate(appointment.getDate());
+            billRequest.setUpdatedAt(LocalDateTime.now());
+            billRequest.setUpdatedBy(username);
             billRequest.setStatus(appointment.getStatus()); // Status Unpaid
             // Call bill service to update bill
             var billResponse = billWebClient.put()

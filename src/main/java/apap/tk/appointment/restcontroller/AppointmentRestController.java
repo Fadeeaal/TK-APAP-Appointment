@@ -5,11 +5,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import apap.tk.appointment.model.Appointment;
+import apap.tk.appointment.model.Treatment;
 import apap.tk.appointment.restdto.request.AddAppointmentRequestRestDTO;
 import apap.tk.appointment.restdto.response.AppointmentResponseRestDTO;
 import apap.tk.appointment.restdto.response.BaseResponseDTO;
 import apap.tk.appointment.restservice.AppointmentRestService;
+import apap.tk.appointment.service.TreatmentService;
 
 import java.util.Date;
 import java.util.List;
@@ -20,10 +21,12 @@ import java.util.UUID;
 @RequestMapping("/api/appointment")
 public class AppointmentRestController {
     private final AppointmentRestService appointmentRestService;
+    private final TreatmentService treatmentService;
 
     // Constructor-based dependency injection
-    public AppointmentRestController(AppointmentRestService appointmentRestService) {
+    public AppointmentRestController(AppointmentRestService appointmentRestService, TreatmentService treatmentService) {
         this.appointmentRestService = appointmentRestService;
+        this.treatmentService = treatmentService;
     }
 
     @GetMapping("/all")
@@ -176,6 +179,18 @@ public class AppointmentRestController {
         baseResponseDTO.setStatus(HttpStatus.OK.value());
         baseResponseDTO.setData(updatedAppointment);
         baseResponseDTO.setMessage("Diagnosis dan treatment dari appointment berhasil diperbarui");
+        baseResponseDTO.setTimestamp(new Date());
+        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("/treatments")
+    public ResponseEntity<?> getAllTreatments() {
+        var baseResponseDTO = new BaseResponseDTO<List<Treatment>>();
+        List<Treatment> treatments = treatmentService.getAllTreatments();
+
+        baseResponseDTO.setStatus(HttpStatus.OK.value());
+        baseResponseDTO.setData(treatments);
+        baseResponseDTO.setMessage("Daftar treatment berhasil ditemukan");
         baseResponseDTO.setTimestamp(new Date());
         return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
