@@ -26,6 +26,7 @@ build:
   stage: build
   only:
     - main
+    - new-development
   script:
     - echo "Compile appointment project to .jar"
     - cd $CI_PROJECT_DIR
@@ -39,6 +40,7 @@ publish:
   stage: publish
   only:
     - main
+    - new-development
   dependencies:
     - build
   script:
@@ -55,6 +57,7 @@ deployment:
     - publish
   only:
     - main
+    - new-development
   extends: .setup-ssh
   script:
     - echo "Deploy to server..."
@@ -79,6 +82,7 @@ cleaning:
     - deployment
   only:
     - main
+    - new-development
   extends: .setup-ssh
   script:
     - echo "Cleaning image appointment..."
