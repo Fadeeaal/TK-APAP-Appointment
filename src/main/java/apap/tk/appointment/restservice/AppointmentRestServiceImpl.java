@@ -49,8 +49,8 @@ public class AppointmentRestServiceImpl implements AppointmentRestService {
     public AppointmentRestServiceImpl(AppointmentDb appointmentDb, TreatmentDb treatmentDb, WebClient.Builder webClientBuilder) {
         this.appointmentDb = appointmentDb;
         this.treatmentDb = treatmentDb;
-        this.userWebClient = webClientBuilder.baseUrl("http://profile:8086/api/profile").build(); // Base URL untuk Profile
-        this.billWebClient = webClientBuilder.baseUrl("http://bill:8082/api/bill").build();
+        this.userWebClient = webClientBuilder.baseUrl("http://localhost:8086/api/profile").build(); // Base URL untuk Profile
+        this.billWebClient = webClientBuilder.baseUrl("http://localhost:8082/api/bill").build();
     }
 
     private static final Map<Integer, String> SPECIALIZATION_CODES = new HashMap<>();
@@ -91,31 +91,6 @@ public class AppointmentRestServiceImpl implements AppointmentRestService {
 
         // Gabungkan semua bagian untuk membentuk ID
         return doctorSpecialty + datePart + sequencePart;
-    }
-
-    public DoctorResponseDTO getDoctorById(UUID doctorId) throws Exception{
-        var response = userWebClient.get()
-            .uri("/user?id=" + doctorId)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenHolder.getToken())
-            .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<BaseResponseDTO<DoctorResponseDTO>>(){})
-            .block();// Block untuk menunggu responsnya
-        if (response == null) {
-            throw new Exception("Doctor not found");
-        }
-
-        return response.getData();}
-
-    public PatientResponseDTO getPatientById(UUID patientId) throws Exception {
-        var response = userWebClient.get()
-            .uri("/user?id=" + patientId)
-            .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<BaseResponseDTO<PatientResponseDTO>>(){})
-            .block();// Block untuk menunggu responsnya
-        if (response == null) {
-            throw new Exception("Patient not found");
-        }
-        return response.getData();
     }
 
     @Override
